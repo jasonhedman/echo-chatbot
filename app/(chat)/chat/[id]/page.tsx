@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { notFound, redirect } from 'next/navigation';
+import { notFound, unauthorized } from 'next/navigation';
 
 import { auth } from '@/app/(auth)/auth';
 import { Chat } from '@/components/chat';
@@ -20,11 +20,11 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const session = await auth();
 
   if (!session) {
-    redirect('/api/auth/guest');
+    return unauthorized();
   }
 
   if (chat.visibility === 'private') {
-    if (!session.user) {
+    if (!session?.user) {
       return notFound();
     }
 
