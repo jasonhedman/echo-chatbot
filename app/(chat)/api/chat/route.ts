@@ -97,13 +97,10 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (!chat) {
-      console.log('generating title');
       const title = await generateTitleFromUserMessage({
         message,
         token,
       });
-
-      console.log(title);
 
       await saveChat({
         id,
@@ -119,8 +116,6 @@ export async function POST(request: Request) {
 
     const messagesFromDb = await getMessagesByChatId({ id });
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
-
-    console.log(messagesFromDb);
 
     const { longitude, latitude, city, country } = geolocation(request);
 
