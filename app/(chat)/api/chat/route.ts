@@ -168,11 +168,12 @@ export async function POST(request: Request) {
           experimental_transform: smoothStream({ chunking: 'word' }),
           tools: {
             getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
+            createDocument: createDocument({ session, dataStream, token }),
+            updateDocument: updateDocument({ session, dataStream, token }),
             requestSuggestions: requestSuggestions({
               session,
               dataStream,
+              token,
             }),
           },
           experimental_telemetry: {

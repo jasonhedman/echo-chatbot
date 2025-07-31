@@ -11,9 +11,14 @@ import type { ChatMessage } from '@/lib/types';
 interface CreateDocumentProps {
   session: Session;
   dataStream: UIMessageStreamWriter<ChatMessage>;
+  token: string;
 }
 
-export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
+export const createDocument = ({
+  session,
+  dataStream,
+  token,
+}: CreateDocumentProps) =>
   tool({
     description:
       'Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.',
@@ -48,7 +53,7 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
         transient: true,
       });
 
-      const documentHandler = documentHandlersByArtifactKind.find(
+      const documentHandler = documentHandlersByArtifactKind(token).find(
         (documentHandlerByArtifactKind) =>
           documentHandlerByArtifactKind.kind === kind,
       );

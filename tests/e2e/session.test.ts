@@ -4,6 +4,8 @@ import { generateRandomTestUser } from '../helpers';
 import { ChatPage } from '../pages/chat';
 import { getMessageByErrorCode } from '@/lib/errors';
 
+import type { Request } from '@playwright/test';
+
 test.describe
   .serial('Guest Session', () => {
     test('Authenticate as guest user when a new session is loaded', async ({
@@ -15,7 +17,7 @@ test.describe
         throw new Error('Failed to load page');
       }
 
-      let request = response.request();
+      let request: Request | null = response.request();
 
       const chain = [];
 
@@ -57,7 +59,7 @@ test.describe
         throw new Error('Failed to load page');
       }
 
-      let request = response.request();
+      let request: Request | null = response.request();
 
       const chain = [];
 
