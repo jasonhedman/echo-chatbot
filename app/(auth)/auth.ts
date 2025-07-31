@@ -76,6 +76,9 @@ export const {
       return true;
     },
     session: async ({ session, user }) => {
+      if (!user.id) {
+        return session;
+      }
       const account = await getAccountByUserId({ userId: user.id });
       if (account?.expires_at && account.expires_at * 1000 < Date.now()) {
         // If the access token has expired, try to refresh it
