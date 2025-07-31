@@ -61,6 +61,20 @@ export const {
     },
   ],
   callbacks: {
+    signIn: async ({ user, account }) => {
+      if (!user.id || !account) {
+        return false;
+      }
+      const existingAccount = await getAccountByUserId({ userId: user.id });
+      if (existingAccount) {
+        await updateTokensByUserId(user.id, {
+          access_token: account.access_token || '',
+          expires_at: account.expires_at || 0,
+          refresh_token: account.refresh_token || '',
+        });
+      }
+      return true;
+    },
     session: async ({ session, user }) => {
       const account = await getAccountByUserId({ userId: user.id });
       if (account?.expires_at && account.expires_at * 1000 < Date.now()) {
