@@ -10,6 +10,8 @@ import { UnauthedPage } from '@/components/unauthed';
 export default async function Page() {
   const session = await auth();
 
+  console.log(session);
+
   if (!session) {
     return <UnauthedPage />;
   }
