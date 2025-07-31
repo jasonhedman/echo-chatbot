@@ -4,8 +4,6 @@ import { ThemeProvider } from '@/components/theme-provider';
 
 import { SessionProvider } from 'next-auth/react';
 
-import { EchoProvider } from '@/app/contexts/echo';
-
 import type { Metadata } from 'next';
 
 import './globals.css';
@@ -82,9 +80,7 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <Toaster position="top-center" />
-          <SessionProvider>
-            <EchoProvider>{children}</EchoProvider>
-          </SessionProvider>
+          <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>
     </html>
