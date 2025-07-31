@@ -1,10 +1,8 @@
-import { compare } from 'bcrypt-ts';
 import NextAuth, { type DefaultSession } from 'next-auth';
-import Credentials from 'next-auth/providers/credentials';
-import { createGuestUser, getUser } from '@/lib/db/queries';
 import { authConfig } from './auth.config';
-import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
+import { db } from '@/lib/db';
+import { DrizzleAdapter } from '@auth/drizzle-adapter';
 
 export type UserType = 'guest' | 'regular';
 
@@ -30,6 +28,8 @@ declare module 'next-auth/jwt' {
   }
 }
 
+const baseUrl = '';
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -37,39 +37,32 @@ export const {
   signOut,
 } = NextAuth({
   ...authConfig,
+  adapter: DrizzleAdapter(db),
   providers: [
-    Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
-        const users = await getUser(email);
-
-        if (users.length === 0) {
-          await compare(password, DUMMY_PASSWORD);
-          return null;
-        }
-
-        const [user] = users;
-
-        if (!user.password) {
-          await compare(password, DUMMY_PASSWORD);
-          return null;
-        }
-
-        const passwordsMatch = await compare(password, user.password);
-
-        if (!passwordsMatch) return null;
-
-        return { ...user, type: 'regular' };
+    {
+      id: 'echo',
+      name: 'Echo',
+      type: 'oauth',
+      clientId: process.env.NEXT_PUBLIC_ECHO_APP_ID,
+      issuer: baseUrl,
+      authorization: {
+        url: `https://echo.merit.systems/api/oauth/authorize`,
+        params: {
+          scope: 'llm:invoke offline_access',
+        },
       },
-    }),
-    Credentials({
-      id: 'guest',
-      credentials: {},
-      async authorize() {
-        const [guestUser] = await createGuestUser();
-        return { ...guestUser, type: 'guest' };
+      token: `https://echo.merit.systems/api/oauth/token?client_id=${process.env.NEXT_PUBLIC_ECHO_APP_ID}`,
+      userinfo: {
+        url: `https://echo.merit.systems/api/oauth/userinfo`,
       },
-    }),
+      profile: (profile) => {
+        return {
+          id: profile.sub,
+          name: profile.name,
+          type: 'regular',
+        };
+      },
+    },
   ],
   callbacks: {
     async jwt({ token, user }) {
