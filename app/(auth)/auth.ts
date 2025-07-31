@@ -43,14 +43,14 @@ export const {
       id: 'echo',
       name: 'Echo',
       type: 'oauth',
-      clientId: process.env.NEXT_PUBLIC_ECHO_APP_ID,
+      clientId: process.env.ECHO_APP_ID,
       authorization: {
         url: `https://echo.merit.systems/api/oauth/authorize`,
         params: {
           scope: 'llm:invoke offline_access',
         },
       },
-      token: `https://echo.merit.systems/api/oauth/token?client_id=${process.env.NEXT_PUBLIC_ECHO_APP_ID}`,
+      token: `https://echo.merit.systems/api/oauth/token?client_id=${process.env.ECHO_APP_ID}`,
       userinfo: {
         url: `https://echo.merit.systems/api/oauth/userinfo`,
       },

@@ -7,7 +7,7 @@ export const EchoProvider = ({ children }: { children: React.ReactNode }) => {
     <EchoProviderBase
       config={{
         // biome-ignore lint: <explanation>
-        appId: process.env.NEXT_PUBLIC_ECHO_APP_ID!,
+        appId: process.env.ECHO_APP_ID!,
       }}
     >
       {children}
