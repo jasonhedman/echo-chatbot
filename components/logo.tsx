@@ -18,6 +18,8 @@ export const Logo = forwardRef<HTMLImageElement, LogoProps>(
           alt="Echo Chatbot Logo"
           className={cn('size-6 dark:hidden', className)}
           onClick={onClick}
+          height={200}
+          width={200}
           {...props}
         />
         <Image
@@ -25,6 +27,8 @@ export const Logo = forwardRef<HTMLImageElement, LogoProps>(
           alt="Echo Chatbot Logo"
           className={cn('size-6 hidden dark:block', className)}
           onClick={onClick}
+          height={200}
+          width={200}
           {...props}
         />
       </>

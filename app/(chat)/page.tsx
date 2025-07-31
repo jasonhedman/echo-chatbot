@@ -4,22 +4,14 @@ import { Chat } from '@/components/chat';
 import { DEFAULT_CHAT_MODEL } from '@/lib/ai/models';
 import { generateUUID } from '@/lib/utils';
 import { DataStreamHandler } from '@/components/data-stream-handler';
-import { auth, signIn } from '../(auth)/auth';
+import { auth } from '../(auth)/auth';
+import { UnauthedPage } from '@/components/unauthed';
 
 export default async function Page() {
   const session = await auth();
 
   if (!session) {
-    return (
-      <form
-        action={async () => {
-          'use server';
-          await signIn('echo');
-        }}
-      >
-        <button type="submit">Sign in</button>
-      </form>
-    );
+    return <UnauthedPage />;
   }
 
   const id = generateUUID();
