@@ -5,28 +5,23 @@ import { db } from '@/lib/db';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { getAccountByUserId, updateTokensByUserId } from '@/lib/db/queries';
 
-export type UserType = 'guest' | 'regular';
-
 declare module 'next-auth' {
   interface Session extends DefaultSession {
     id: string;
     user: {
       id: string;
-      type: UserType;
     } & DefaultSession['user'];
   }
 
   interface User {
     id?: string;
     email?: string | null;
-    type: UserType;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
     id: string;
-    type: UserType;
   }
 }
 
