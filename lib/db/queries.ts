@@ -25,6 +25,7 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  accounts,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import type { VisibilityType } from '@/components/visibility-selector';
@@ -500,5 +501,39 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       'bad_request:database',
       'Failed to get stream ids by chat id',
     );
+  }
+}
+
+export async function getAccountByUserId({ userId }: { userId: string }) {
+  try {
+    const [account] = await db
+      .select()
+      .from(accounts)
+      .where(eq(accounts.userId, userId));
+
+    return account;
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      'Failed to get account by user id',
+    );
+  }
+}
+
+export async function updateTokensByUserId(
+  userId: string,
+  data: {
+    access_token: string;
+    expires_at: number;
+    refresh_token: string;
+  },
+) {
+  try {
+    return await db
+      .update(accounts)
+      .set(data)
+      .where(eq(accounts.userId, userId));
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to update account');
   }
 }

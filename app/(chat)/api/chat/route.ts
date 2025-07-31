@@ -6,13 +6,13 @@ import {
   stepCountIs,
   streamText,
 } from 'ai';
-import { auth, type UserType } from '@/app/(auth)/auth';
+import { auth } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
   createStreamId,
   deleteChatById,
+  getAccountByUserId,
   getChatById,
-  getMessageCountByUserId,
   getMessagesByChatId,
   saveChat,
   saveMessages,
@@ -25,7 +25,6 @@ import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
-import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
 import {
@@ -78,13 +77,11 @@ export async function POST(request: Request) {
       message,
       selectedChatModel,
       selectedVisibilityType,
-      token,
     }: {
       id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel['id'];
       selectedVisibilityType: VisibilityType;
-      token: string;
     } = requestBody;
 
     const session = await auth();
@@ -93,24 +90,20 @@ export async function POST(request: Request) {
       return new ChatSDKError('unauthorized:chat').toResponse();
     }
 
-    const userType: UserType = session.user.type;
+    const account = await getAccountByUserId({ userId: session.user.id });
 
-    const messageCount = await getMessageCountByUserId({
-      id: session.user.id,
-      differenceInHours: 24,
-    });
-
-    if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
-      return new ChatSDKError('rate_limit:chat').toResponse();
-    }
+    const token = account?.access_token || '';
 
     const chat = await getChatById({ id });
 
     if (!chat) {
+      console.log('generating title');
       const title = await generateTitleFromUserMessage({
         message,
         token,
       });
+
+      console.log(title);
 
       await saveChat({
         id,
@@ -126,6 +119,8 @@ export async function POST(request: Request) {
 
     const messagesFromDb = await getMessagesByChatId({ id });
     const uiMessages = [...convertToUIMessages(messagesFromDb), message];
+
+    console.log(messagesFromDb);
 
     const { longitude, latitude, city, country } = geolocation(request);
 

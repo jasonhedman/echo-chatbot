@@ -3,11 +3,13 @@ import { authConfig } from './auth.config';
 import type { DefaultJWT } from 'next-auth/jwt';
 import { db } from '@/lib/db';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
+import { getAccountByUserId, updateTokensByUserId } from '@/lib/db/queries';
 
 export type UserType = 'guest' | 'regular';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
+    id: string;
     user: {
       id: string;
       type: UserType;
@@ -28,8 +30,6 @@ declare module 'next-auth/jwt' {
   }
 }
 
-const baseUrl = '';
-
 export const {
   handlers: { GET, POST },
   auth,
@@ -44,7 +44,6 @@ export const {
       name: 'Echo',
       type: 'oauth',
       clientId: process.env.NEXT_PUBLIC_ECHO_APP_ID,
-      issuer: baseUrl,
       authorization: {
         url: `https://echo.merit.systems/api/oauth/authorize`,
         params: {
@@ -59,27 +58,56 @@ export const {
         return {
           id: profile.sub,
           name: profile.name,
+          email: profile.email || '',
+          image: profile.picture || '',
           type: 'regular',
         };
       },
     },
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id as string;
-        token.type = user.type;
-      }
+    session: async ({ session, user }) => {
+      const account = await getAccountByUserId({ userId: user.id });
+      if (account?.expires_at && account.expires_at * 1000 < Date.now()) {
+        // If the access token has expired, try to refresh it
+        try {
+          const response = await fetch(
+            'https://echo.merit.systems/api/oauth/token',
+            {
+              method: 'POST',
+              body: new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: account.refresh_token || '',
+              }),
+            },
+          );
 
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user) {
-        session.user.id = token.id;
-        session.user.type = token.type;
-      }
+          const tokensOrError = await response.json();
 
-      return session;
+          if (!response.ok) throw tokensOrError;
+
+          const newTokens = tokensOrError as {
+            access_token: string;
+            expires_in: number;
+            refresh_token: string;
+          };
+
+          await updateTokensByUserId(user.id, {
+            access_token: newTokens.access_token,
+            expires_at: Math.floor(Date.now() / 1000 + newTokens.expires_in),
+            refresh_token: newTokens.refresh_token,
+          });
+        } catch (error) {
+          console.error('Error refreshing access_token', error);
+        }
+      }
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          id: user.id,
+        },
+      };
     },
   },
 });

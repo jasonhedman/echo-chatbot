@@ -22,6 +22,8 @@ export async function generateTitleFromUserMessage({
   token: string;
   message: UIMessage;
 }) {
+  console.log('generating title');
+  console.log(myProvider(token).languageModel('title-model'));
   const { text: title } = await generateText({
     model: myProvider(token).languageModel('title-model'),
     system: `\n
@@ -31,6 +33,8 @@ export async function generateTitleFromUserMessage({
     - do not use quotes or colons`,
     prompt: JSON.stringify(message),
   });
+
+  console.log(title);
 
   return title;
 }
