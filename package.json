@@ -1,9 +1,9 @@
 {
-  "name": "ai-chatbot",
+  "name": "echo-chatbot",
   "version": "3.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbo",
+    "dev": "npx tsx setup/index.ts && next dev --turbo",
     "build": "tsx lib/db/migrate && next build",
     "start": "next start",
     "lint": "next lint && biome lint --write --unsafe",
